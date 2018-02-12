@@ -12,3 +12,5 @@ class Student {
         this.age = undefined;
     }
 }
+
+module.exports = Student;
