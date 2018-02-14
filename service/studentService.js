@@ -7,7 +7,6 @@ let studentService = {
 
     get: function(id) {
         let promise = new Promise(function(resolve, reject) {
-            // pool.connect();
             let sql = "select * from t_student where id = " + id;
             pool.query(sql, function (error, results, fields) {
                 if (error) {
@@ -16,7 +15,6 @@ let studentService = {
                 if (results) {
                     resolve(results);
                 }
-                // pool.end();
             });
         });
         return promise;
