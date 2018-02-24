@@ -1,45 +1,36 @@
 const express = require('express');
 const router = express.Router();
-const Student = require('../entity/student')
+const Student = require('../entity/student');
 const studentService = require('../service/studentService');
 const CommonResult = require('../dto/commonResult');
 const MyPage = require('../dto/myPage');
 
 router.all('/get', function(req, res, next) {
 
+    let commonResult = new CommonResult();
+
     let id;
     if (req.method === "GET") {
-        id = req.query.id;
+        id = parseInt(req.query.id);
     } else if (req.method === "POST") {
-        id = req.body.id;
+        id = parseInt(req.body.id);
     }
 
-    let studentId = parseInt(id);
-
-    let if_ok = false;
-    if (studentId === null || studentId === undefined || studentId === "" || isNaN(studentId)) {
-        if_ok = false;
-    } else if (typeof studentId !== "number") {
-        if_ok = false;
-    } else if (studentId <= 0) {
-        if_ok = false;
-    } else if (studentId % 1 === 0) {
-        if_ok = true;
-    }
-    let commonResult = new CommonResult();
-    if (!if_ok) {
+    if (!id || isNaN(id) || id <= 0) {
         commonResult.code = 432;
         commonResult.message = "参数id错误：未提供或格式不正确";
         res.send(commonResult);
     } else {
-        studentService.get(studentId).then(function(data) {
-            commonResult.data = data;
-            res.send(commonResult);
-        }, function() {
+        try {
+            (async function() {
+                commonResult.data = await studentService.get(id);
+                res.send(commonResult);
+            }());
+        } catch (error) {
             commonResult.code = 500;
-            commonResult.message = "ERROR";
+            commonResult.message = "ERROR: " + error.message;
             res.send(commonResult);
-        });
+        }
     }
 });
 
@@ -49,9 +40,9 @@ router.all('/getall', function(req, res, next) {
     studentService.getAll().then(function(data) {
         commonResult.data = data;
         res.send(commonResult);
-    }, function() {
+    }).catch(function(error) {
         commonResult.code = 500;
-        commonResult.message = "ERROR";
+        commonResult.message = "ERROR: " + error.message;
         res.send(commonResult);
     });
 });
@@ -61,11 +52,11 @@ router.all('/getallpage', function(req, res, next) {
     let commonResult = new CommonResult();
     let page, size;
     if (req.method === "GET") {
-        page = req.query.page;
-        size = req.query.size;
+        page = parseInt(req.query.page);
+        size = parseInt(req.query.size);
     } else if (req.method === "POST") {
-        page = req.body.page;
-        size = req.body.size;
+        page = parseInt(req.body.page);
+        size = parseInt(req.body.size);
     }
     if (!page || isNaN(page) || page < 0) {
         page = 0;
@@ -87,9 +78,9 @@ router.all('/getallpage', function(req, res, next) {
 
         commonResult.data = myPage;
         res.send(commonResult);
-    }, function() {
+    }).catch(function(error) {
         commonResult.code = 500;
-        commonResult.message = "ERROR";
+        commonResult.message = "ERROR: " + error.message;
         res.send(commonResult);
     });
 });
@@ -99,20 +90,24 @@ router.all('/delete', function(req, res, next) {
 
     let id;
     if (req.method === "GET") {
-        id = req.query.id;
+        id = parseInt(req.query.id);
     } else if (req.method === "POST") {
-        id = req.body.id;
+        id = parseInt(req.body.id);
     }
 
-    id = parseInt(id);
-
-    studentService.delete(id).then(function(data) {
+    if (!id || isNaN(id) || id <= 0) {
+        commonResult.code = 432;
+        commonResult.message = "参数id错误：未提供或格式不正确";
         res.send(commonResult);
-    }, function() {
-        commonResult.code = 500;
-        commonResult.message = "ERROR";
-        res.send(commonResult);
-    });
+    } else {
+        studentService.delete(id).then(function(data) {
+            res.send(commonResult);
+        }).catch(function(error) {
+            commonResult.code = 500;
+            commonResult.message = "ERROR: " + error.message;
+            res.send(commonResult);
+        });
+    }
 });
 
 router.all('/add', function(req, res, next) {
@@ -133,9 +128,9 @@ router.all('/add', function(req, res, next) {
 
     studentService.add(student).then(function(data) {
         res.send(commonResult);
-    }, function() {
+    }).catch(function(error) {
         commonResult.code = 500;
-        commonResult.message = "ERROR";
+        commonResult.message = "ERROR: " + error.message;
         res.send(commonResult);
     });
 });
@@ -152,13 +147,19 @@ router.all('/update', function(req, res, next) {
         updatedParams = JSON.parse(req.body.updatedParams);
     }
 
-    studentService.update(id, updatedParams).then(function(data) {
+    if (!id || isNaN(id) || id <= 0) {
+        commonResult.code = 432;
+        commonResult.message = "参数id错误：未提供或格式不正确";
         res.send(commonResult);
-    }, function() {
-        commonResult.code = 500;
-        commonResult.message = "ERROR";
-        res.send(commonResult);
-    });
+    } else {
+        studentService.update(id, updatedParams).then(function(data) {
+            res.send(commonResult);
+        }).catch(function(error) {
+            commonResult.code = 500;
+            commonResult.message = "ERROR: " + error.message;
+            res.send(commonResult);
+        });
+    }
 });
 
 module.exports = router;
