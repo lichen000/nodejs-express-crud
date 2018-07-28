@@ -1,11 +1,10 @@
 const express = require('express');
-var path = require('path');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+const path = require('path');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 
-var index = require('./routes/index');
-const studentController = require('./routes/studentController');
+const studentController = require('./controller/studentController');
 
 const app = express();
 
@@ -16,7 +15,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 //route
-app.use('/', index);
 app.use('/api/student', studentController);
 
 module.exports = app;
